@@ -124,14 +124,15 @@ OC.L10N = {
 	},
 
 	/**
-	 * Translate a string
+	 * Translate a string - replaced placeholders are escaped automatically
 	 * @param {string} app the id of the app for which to translate the string
 	 * @param {string} text the string to translate
 	 * @param [vars] map of placeholder key to value
 	 * @param {number} [count] number to replace %n with
+	 * @param {bool} [disableEscape] disable auto escape of placeholders
 	 * @return {string}
 	 */
-	translate: function(app, text, vars, count) {
+	translate: function(app, text, vars, count, disableEscape) {
 		// TODO: cache this function to avoid inline recreation
 		// of the same function over and over again in case
 		// translate() is used in a loop
@@ -139,7 +140,15 @@ OC.L10N = {
 			return text.replace(/%n/g, count).replace(/{([^{}]*)}/g,
 				function (a, b) {
 					var r = vars[b];
-					return typeof r === 'string' || typeof r === 'number' ? r : a;
+					if(typeof r === 'string' || typeof r === 'number') {
+						if(disableEscape) {
+							return r;
+						} else {
+							return escapeHTML(r);
+						}
+					} else {
+						return a;
+					}
 				}
 			);
 		};
@@ -158,15 +167,16 @@ OC.L10N = {
 	},
 
 	/**
-	 * Translate a plural string
+	 * Translate a plural string - replaced placeholders are escaped automatically
 	 * @param {string} app the id of the app for which to translate the string
-	 * @param {string} text_singular the string to translate for exactly one object
-	 * @param {string} text_plural the string to translate for n objects
+	 * @param {string} textSingular the string to translate for exactly one object
+	 * @param {string} textPlural the string to translate for n objects
 	 * @param {number} count number to determine whether to use singular or plural
 	 * @param [vars] map of placeholder key to value
+	 * @param {bool} [disableEscape] disable auto escape of placeholders
 	 * @return {string} Translated string
 	 */
-	translatePlural: function(app, textSingular, textPlural, count, vars) {
+	translatePlural: function(app, textSingular, textPlural, count, vars, disableEscape) {
 		var identifier = '_' + textSingular + '_::_' + textPlural + '_';
 		var bundle = this._bundles[app] || {};
 		var value = bundle[identifier];
@@ -174,15 +184,15 @@ OC.L10N = {
 			var translation = value;
 			if ($.isArray(translation)) {
 				var plural = this._pluralFunctions[app](count);
-				return this.translate(app, translation[plural.plural], vars, count);
+				return this.translate(app, translation[plural.plural], vars, count, disableEscape);
 			}
 		}
 
 		if(count === 1) {
-			return this.translate(app, textSingular, vars, count);
+			return this.translate(app, textSingular, vars, count, disableEscape);
 		}
 		else{
-			return this.translate(app, textPlural, vars, count);
+			return this.translate(app, textPlural, vars, count, disableEscape);
 		}
 	}
 };

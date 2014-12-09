@@ -279,6 +279,9 @@ class Server extends SimpleContainer implements IServerContainer {
 			$loader = \OC\Files\Filesystem::getLoader();
 			return new \OC\Files\Config\MountProviderCollection($loader);
 		});
+		$this->registerService('MountManager', function () {
+			return new \OC\Files\Mount\Manager();
+		});
 	}
 
 	/**
@@ -691,5 +694,12 @@ class Server extends SimpleContainer implements IServerContainer {
 	 */
 	function getMountProviderCollection(){
 		return $this->query('MountConfigManager');
+	}
+
+	/**
+	 * @return \OCP\Files\Mount\IMountManager
+	 */
+	function getMountManager() {
+		return $this->query('MountManager');
 	}
 }

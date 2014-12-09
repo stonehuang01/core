@@ -310,4 +310,9 @@ interface IServerContainer {
 	 * @return \OCP\Files\Config\IMountProviderCollection
 	 */
 	function getMountProviderCollection();
+
+	/**
+	 * @return \OCP\Files\Mount\IMountManager
+	 */
+	function getMountManager();
 }

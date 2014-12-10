@@ -361,7 +361,8 @@ class OC {
 		OC_Util::addVendorScript('moment/min/moment-with-locales');
 
 		// avatars
-		if (\OC::$server->getSystemConfig()->getValue('enable_avatars', true) === true) {
+		if (\OC::$server->getSystemConfig()->getValue('enable_avatars', true) === true
+			&& \OCP\User::isLoggedIn()) {
 			\OC_Util::addScript('placeholder');
 			\OC_Util::addVendorScript('blueimp-md5/js/md5');
 			\OC_Util::addScript('jquery.avatar');

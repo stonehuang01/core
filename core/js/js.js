@@ -289,15 +289,9 @@ var OC={
 	 * Do a search query and display the results
 	 * @param {string} query the search query
 	 */
-	search: _.debounce(function(query){
-		if(query){
-			OC.addStyle('search','results');
-			$.getJSON(OC.filePath('search','ajax','search.php')+'?query='+encodeURIComponent(query), function(results){
-				OC.Search.lastResults=results;
-				OC.Search.showResults(results);
-			});
-		}
-	}, 500),
+	search: function (query) {
+		OC.Search.search(query)
+	},
 	/**
 	 * Dialog helper for jquery dialogs.
 	 *
@@ -496,50 +490,6 @@ var OC={
 	getLocale: function() {
 		return $('html').prop('lang');
 	}
-};
-
-/**
- * @deprecated use get/setFormatter() instead
- */
-OC.search.customResults = {};
-/**
- * @deprecated use get/setFormatter() instead
- */
-OC.search.resultTypes = {};
-
-/**
- * @namespace OC.Search
- */
-OC.Search = {
-	/**
-	 * contains closures that are called to format search results
-	 */
-	formatter:{},
-	setFormatter: function(type, formatter) {
-		this.formatter[type] = formatter;
-	},
-	hasFormatter: function(type) {
-		return typeof this.formatter[type] !== 'undefined';
-	},
-	getFormatter: function(type) {
-		return this.formatter[type];
-	},
-	/**
-	 * contains closures that are called when a search result has been clicked
-	 */
-	handler:{},
-	setHandler: function(type, handler) {
-		this.handler[type] = handler;
-	},
-	hasHandler: function(type) {
-		return typeof this.handler[type] !== 'undefined';
-	},
-	getHandler: function(type) {
-		return this.handler[type];
-	},
-	currentResult:-1,
-	lastQuery:'',
-	lastResults:{}
 };
 
 OC.addStyle.loaded=[];
@@ -968,48 +918,6 @@ function initCore() {
 	}else{
 		SVGSupport.checkMimeType();
 	}
-	$('form.searchbox').submit(function(event){
-		event.preventDefault();
-	});
-	$('#searchbox').keyup(function(event){
-		if(event.keyCode===13){//enter
-			if(OC.Search.currentResult>-1){
-				var result=$('#searchresults tr.result a')[OC.Search.currentResult];
-				window.location = $(result).attr('href');
-			}
-		}else if(event.keyCode===38){//up
-			if(OC.Search.currentResult>0){
-				OC.Search.currentResult--;
-				OC.Search.renderCurrent();
-			}
-		}else if(event.keyCode===40){//down
-			if(OC.Search.lastResults.length>OC.Search.currentResult+1){
-				OC.Search.currentResult++;
-				OC.Search.renderCurrent();
-			}
-		}else if(event.keyCode===27){//esc
-			OC.Search.hide();
-			if (FileList && typeof FileList.unfilter === 'function') { //TODO add hook system
-				FileList.unfilter();
-			}
-		}else{
-			var query=$('#searchbox').val();
-			if(OC.Search.lastQuery!==query){
-				OC.Search.lastQuery=query;
-				OC.Search.currentResult=-1;
-				if (FileList && typeof FileList.filter === 'function') { //TODO add hook system
-						FileList.filter(query);
-				}
-				if(query.length>2){
-					OC.search(query);
-				}else{
-					if(OC.Search.hide){
-						OC.Search.hide();
-					}
-				}
-			}
-		}
-	});
 
 	var setShowPassword = function(input, label) {
 		input.showPassword().keyup();

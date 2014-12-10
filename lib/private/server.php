@@ -32,12 +32,16 @@ use OC\Tagging\TagMapper;
 class Server extends SimpleContainer implements IServerContainer {
 	/** @var string */
 	private $webRoot;
+	/** @var string */
+	private $serverRoot;
 
 	/**
 	 * @param string $webRoot
+	 * @param string $serverRoot
 	 */
-	function __construct($webRoot) {
+	function __construct($webRoot, $serverRoot) {
 		$this->webRoot = $webRoot;
+		$this->serverRoot = $serverRoot;
 
 		$this->registerService('ContactsManager', function ($c) {
 			return new ContactsManager();
@@ -690,6 +694,15 @@ class Server extends SimpleContainer implements IServerContainer {
 	 */
 	function getWebRoot() {
 		return $this->webRoot;
+	}
+
+	/**
+	 * Get the server root directory
+	 *
+	 * @return string
+	 */
+	function getServerRoot() {
+		return $this->serverRoot;
 	}
 
 	/**

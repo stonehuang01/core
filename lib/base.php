@@ -340,7 +340,6 @@ class OC {
 		OC_Util::addVendorScript('jquery/jquery.min');
 		OC_Util::addVendorScript('jquery/jquery-migrate.min');
 		OC_Util::addScript("jquery-ui-1.10.0.custom");
-		OC_Util::addScript("jquery-showpassword");
 		OC_Util::addScript("placeholders");
 		OC_Util::addScript("jquery-tipsy");
 		OC_Util::addScript("compatibility");

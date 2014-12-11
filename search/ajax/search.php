@@ -37,7 +37,7 @@ if (isset($_GET['page'])) {
 if (isset($_GET['size'])) {
 	$size = (int)$_GET['size'];
 } else {
-	$size = 0;
+	$size = 30;
 }
 if($query) {
 	$result = \OC::$server->getSearch()->searchPaged($query, $page, $size);

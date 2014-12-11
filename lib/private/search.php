@@ -21,6 +21,7 @@
  */
 
 namespace OC;
+use OCP\Search\PagedProvider;
 use OCP\Search\Provider;
 use OCP\ISearch;
 
@@ -38,11 +39,31 @@ class Search implements ISearch {
 	 * @return array An array of OC\Search\Result's
 	 */
 	public function search($query) {
+		return $this->searchPaged($query, 0, 0);
+	}
+
+	/**
+	 * Search all providers for $query
+	 * @param string $query
+	 * @param int $page
+	 * @param int $size, 0 = all
+	 * @return array An array of OC\Search\Result's
+	 */
+	public function searchPaged($query, $page = 0, $size = 30) {
 		$this->initProviders();
 		$results = array();
 		foreach($this->providers as $provider) {
-			/** @var $provider Provider */
-			$results = array_merge($results, $provider->search($query));
+			if ($provider instanceof PagedProvider) {
+				$results = array_merge($results, $provider->searchPaged($query, $page, $size));
+			} else if ($provider instanceof Provider) {
+				$providerResults = $provider->search($query);
+				if ($size > 0) {
+					$slicedResults = array_slice($providerResults, $page * $size, $size);
+				}
+				$results = array_merge($results, $slicedResults);
+			} else {
+				\OC::$server->getLogger()->warning('Ignoring Unknown search provider', array('provider' => $provider));
+			}
 		}
 		return $results;
 	}

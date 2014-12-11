@@ -33,8 +33,18 @@ interface ISearch {
 	 * Search all providers for $query
 	 * @param string $query
 	 * @return array An array of OCP\Search\Result's
+	 * @deprecated use searchPaged() with page and size
 	 */
 	public function search($query);
+
+	/**
+	 * Search all providers for $query
+	 * @param string $query
+	 * @param int $page
+	 * @param int $size
+	 * @return array An array of OCP\Search\Result's
+	 */
+	public function searchPaged($query, $page = 0, $size = 30);
 
 	/**
 	 * Register a new search provider to search with

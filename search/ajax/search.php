@@ -24,10 +24,23 @@
 // Check if we are a user
 OC_JSON::checkLoggedIn();
 \OC::$server->getSession()->close();
-
-$query=(isset($_GET['query']))?$_GET['query']:'';
+if (isset($_GET['query'])) {
+	$query = $_GET['query'];
+} else {
+	$query = '';
+}
+if (isset($_GET['page'])) {
+	$page = (int)$_GET['page'];
+} else {
+	$page = 0;
+}
+if (isset($_GET['size'])) {
+	$size = (int)$_GET['size'];
+} else {
+	$size = 0;
+}
 if($query) {
-	$result = \OC::$server->getSearch()->search($query);
+	$result = \OC::$server->getSearch()->searchPaged($query, $page, $size);
 	OC_JSON::encodedPrint($result);
 }
 else {

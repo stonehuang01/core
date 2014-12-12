@@ -94,6 +94,8 @@ class USER_WEBDAVAUTH implements \OCP\UserInterface {
 	 * @return boolean|false
 	 */
 	public function checkPassword($uid, $password) {
+		$uid = strtolower($uid);
+
 		$endPointUrl = $this->config->getSystemValue('user_webdavauth_url');
 		$headers = $this->httpHelper->getHeaders($this->createAuthUrl($endPointUrl, $uid, $password));
 		if($headers === false) {

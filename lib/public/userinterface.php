@@ -30,4 +30,10 @@
 // This means that they should be used by apps instead of the internal ownCloud classes
 namespace OCP;
 
+/**
+ * Interface UserInterface
+ *
+ * @package OCP
+ * @deprecated Use \OCP\IUserBackend instead
+ */
 interface UserInterface extends \OC_User_Interface {}

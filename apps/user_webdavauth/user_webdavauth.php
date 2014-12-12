@@ -15,6 +15,7 @@ use OC\HTTPHelper;
 use OCP\IConfig;
 use OCP\IDb;
 use OCP\ILogger;
+use OCP\IUserManager;
 
 class USER_WEBDAVAUTH implements \OCP\UserInterface {
 	/** @var string */
@@ -27,6 +28,8 @@ class USER_WEBDAVAUTH implements \OCP\UserInterface {
 	private $httpHelper;
 	/** @var ILogger */
 	private $logger;
+	/** @var IUserManager */
+	private $userManager;
 	/** @var string */
 	private $serverRoot;
 
@@ -35,17 +38,20 @@ class USER_WEBDAVAUTH implements \OCP\UserInterface {
 	 * @param IDb $db
 	 * @param HTTPHelper $httpHelper
 	 * @param ILogger $logger
-	 * @param $serverRoot
+	 * @param IUserManager $userManager
+	 * @param string $serverRoot
 	 */
 	public function __construct(IConfig $config,
 								IDb $db,
 								HTTPHelper $httpHelper,
 								ILogger $logger,
+								IUserManager $userManager,
 								$serverRoot) {
 		$this->config = $config;
 		$this->db = $db;
 		$this->httpHelper = $httpHelper;
 		$this->logger = $logger;
+		$this->userManager = $userManager;
 		$this->serverRoot = $serverRoot;
 	}
 
@@ -94,8 +100,6 @@ class USER_WEBDAVAUTH implements \OCP\UserInterface {
 	 * @return boolean|false
 	 */
 	public function checkPassword($uid, $password) {
-		$uid = strtolower($uid);
-
 		$endPointUrl = $this->config->getSystemValue('user_webdavauth_url');
 		$headers = $this->httpHelper->getHeaders($this->createAuthUrl($endPointUrl, $uid, $password));
 		if($headers === false) {
@@ -104,8 +108,17 @@ class USER_WEBDAVAUTH implements \OCP\UserInterface {
 			return false;
 		}
 
+		$uid = strtolower($uid);
+
 		$returnCode = substr($headers[0], 9, 3);
 		if(substr($returnCode, 0, 1) === '2') {
+			// If user already exists in another backend don't login
+			$this->userManager->removeBackend($this);
+			if($this->userManager->userExists($uid)) {
+				return false;
+			}
+
+			// If the user does not exists in this backend create it
 			if(!$this->userExists($uid)) {
 				$query = $this->db->prepareQuery('INSERT INTO `'.$this->tableName.'` (`uid`) VALUES (?)');
 				$query->bindValue(1, $uid);

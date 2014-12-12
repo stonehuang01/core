@@ -19,6 +19,7 @@ $userBackend  = new USER_WEBDAVAUTH(
 	\OC::$server->getDb(),
 	\OC::$server->getHTTPHelper(),
 	\OC::$server->getLogger(),
+	\OC::$server->getUserManager(),
 	\OC::$server->getServerRoot()
 );
 \OC_User::useBackend($userBackend);

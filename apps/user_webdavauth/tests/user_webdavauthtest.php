@@ -16,6 +16,7 @@ use OCP\IConfig;
 use OCP\IDb;
 use OC\HTTPHelper;
 use OCP\ILogger;
+use OCP\IUserManager;
 
 /**
  * Class USER_WEBDAVAUTHTEST
@@ -33,6 +34,8 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 	private $httpHelper;
 	/** @var ILogger */
 	private $logger;
+	/** @var IUserManager */
+	private $userManager;
 
 	protected function setUp() {
 		parent::setUp();
@@ -45,12 +48,15 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 			->disableOriginalConstructor()->getMock();
 		$this->logger = $this->getMockBuilder('\OCP\ILogger')
 			->disableOriginalConstructor()->getMock();
+		$this->userManager = $this->getMockBuilder('\OCP\IUserManager')
+			->disableOriginalConstructor()->getMock();
 
 		$this->userWebDavAuth = new USER_WEBDAVAUTH(
 			$this->config,
 			$this->db,
 			$this->httpHelper,
 			$this->logger,
+			$this->userManager,
 			'/var/www/owncloud'
 		);
 	}
@@ -84,7 +90,9 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 					$this->db,
 					$this->httpHelper,
 					$this->logger,
-					'/var/www/owncloud']
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
@@ -108,6 +116,37 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 
 		$this->assertEquals('lukas', $webDavAuth->checkPassword('lukas', 'test1234'));
 	}
+	public function testCheckPasswordCorrectExistingUserInAnotherBackend() {
+		/** @var USER_WEBDAVAUTH $webDavAuth */
+		$webDavAuth = $this->getMockBuilder('\OCA\user_webdavauth\USER_WEBDAVAUTH')
+			->setConstructorArgs([
+					$this->config,
+					$this->db,
+					$this->httpHelper,
+					$this->logger,
+					$this->userManager,
+					'/var/www/owncloud'
+				]
+			)
+			->setMethods(['userExists'])
+			->getMock();
+		$this->userManager->expects($this->once())
+			->method('removeBackend');
+		$this->userManager->expects($this->once())
+			->method('userExists')
+			->with('lukas')
+			->will($this->returnValue(true));
+		$this->config->expects($this->once())
+			->method('getSystemValue')
+			->with('user_webdavauth_url')
+			->will($this->returnValue('http://dav.owncloud.org/testpoint/'));
+		$this->httpHelper->expects($this->once())
+			->method('getHeaders')
+			->with('http://lukas:test1234@dav.owncloud.org/testpoint/')
+			->will($this->returnValue(['HTTP/1.1 200 OK']));
+
+		$this->assertEquals(false, $webDavAuth->checkPassword('lukas', 'test1234'));
+	}
 
 	public function testCheckPasswordCorrectExistingUser() {
 		/** @var USER_WEBDAVAUTH $webDavAuth */
@@ -117,10 +156,18 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 					$this->db,
 					$this->httpHelper,
 					$this->logger,
-					'/var/www/owncloud']
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
+		$this->userManager->expects($this->once())
+			->method('removeBackend');
+		$this->userManager->expects($this->once())
+			->method('userExists')
+			->with('lukas')
+			->will($this->returnValue(false));
 		$webDavAuth->expects($this->once())
 			->method('userExists')
 			->with('lukas')
@@ -157,7 +204,9 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 					$this->config, $this->db,
 					$this->httpHelper,
 					$this->logger,
-					'/var/www/owncloud']
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
@@ -180,7 +229,9 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 					$this->config, $this->db,
 					$this->httpHelper,
 					$this->logger,
-					'/var/www/owncloud']
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
@@ -199,7 +250,9 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 					$this->config, $this->db,
 					$this->httpHelper,
 					$this->logger,
-					'/var/www/owncloud']
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
@@ -223,10 +276,12 @@ class USER_WEBDAVAUTHTEST extends TestCase {
 		/** @var USER_WEBDAVAUTH $webDavAuth */
 		$webDavAuth = $this->getMockBuilder('\OCA\user_webdavauth\USER_WEBDAVAUTH')
 			->setConstructorArgs([
-				$this->config, $this->db,
-				$this->httpHelper,
-				$this->logger,
-				'/var/www/owncloud']
+					$this->config, $this->db,
+					$this->httpHelper,
+					$this->logger,
+					$this->userManager,
+					'/var/www/owncloud'
+				]
 			)
 			->setMethods(['userExists'])
 			->getMock();
